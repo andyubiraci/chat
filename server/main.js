@@ -12,8 +12,13 @@ app.get('/', function(req, res){
 
 io.on('connection', function(socket) {
     console.log('Alguien en Sockets');
+    socket.emit('message',{
+        id:1,
+        text: "Mi mensaje",
+        author: "Ubiraci"
+    })
 })
 
 server.listen(8080, function(){
-    console.log("corriendo!");
+    console.log("corriendo..!");
 })
