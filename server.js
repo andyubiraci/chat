@@ -1,81 +1,76 @@
-var express = require("express"), 
-http = require("http"),
-app = express(),
-server = http.createServer(app),
-path = require('path');
+// Setup basic express server
+var express = require('express');
+var app = express();
+var path = require('path');
+var server = require('http').createServer(app);
+var io = require('socket.io')(server);
+var port = process.env.PORT || 80;
 
+server.listen(port, function () {
+  console.log('Server listening at port %d', port);
+});
+
+// Routing
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.set("views",__dirname + "/views");
-app.configure(function(){
-	app.use(express.static(__dirname));
-});
+// Chatroom
 
-app.get("/", function(req,res){
-	res.render("index.jade", {title : "Chat con NodeJS, Express, Socket.IO y jQuery"});
-});
+var numUsers = 0;
 
-server.listen(3000);
+io.on('connection', function (socket) {
+  var addedUser = false;
 
-//objecto para guardar en la sesión del socket a los que se vayan conectando
-var usuariosOnline = {};
+  // when the client emits 'new message', this listens and executes
+  socket.on('new message', function (data) {
+    // we tell the client to execute 'new message'
+    socket.broadcast.emit('new message', {
+      username: socket.username,
+      message: data
+    });
+  });
 
-var io = require("socket.io").listen(server);
+  // when the client emits 'add user', this listens and executes
+  socket.on('add user', function (username) {
+    if (addedUser) return;
 
-//al conectar un usuario||socket, este evento viene predefinido por socketio
-io.sockets.on('connection', function(socket) 
-{
-	//cuando el usuario conecta al chat comprobamos si está logueado
-	//el parámetro es la sesión login almacenada con sessionStorage
-	socket.on("loginUser", function(username)
-	{
-		//si existe el nombre de usuario en el chat
-		if(usuariosOnline[username])
-		{
-			socket.emit("userInUse");
-			return;
-		}
-		//Guardamos el nombre de usuario en la sesión del socket para este cliente
-		socket.username = username;
-		//añadimos al usuario a la lista global donde almacenamos usuarios
-		usuariosOnline[username] = socket.username;
-		//mostramos al cliente como que se ha conectado
-		socket.emit("refreshChat", "yo", "Bienvenido " + socket.username + ", te has conectado correctamente.");
-		//mostramos de forma global a todos los usuarios que un usuario
-		//se acaba de conectar al chat
-		socket.broadcast.emit("refreshChat", "conectado", "El usuario " + socket.username + " se ha conectado al chat.");
-		//actualizamos la lista de usuarios en el chat del lado del cliente
-		io.sockets.emit("updateSidebarUsers", usuariosOnline);
-	});
+    // we store the username in the socket session for this client
+    socket.username = username;
+    ++numUsers;
+    addedUser = true;
+    socket.emit('login', {
+      numUsers: numUsers
+    });
+    // echo globally (all clients) that a person has connected
+    socket.broadcast.emit('user joined', {
+      username: socket.username,
+      numUsers: numUsers
+    });
+  });
 
-	//cuando un usuario envia un nuevo mensaje, el parámetro es el 
-	//mensaje que ha escrito en la caja de texto
-	socket.on('addNewMessage', function(message) 
-	{
-		//pasamos un parámetro, que es el mensaje que ha escrito en el chat, 
-		//ésto lo hacemos cuando el usuario pulsa el botón de enviar un nuevo mensaje al chat
+  // when the client emits 'typing', we broadcast it to others
+  socket.on('typing', function () {
+    socket.broadcast.emit('typing', {
+      username: socket.username
+    });
+  });
 
-		//con socket.emit, el mensaje es para mi
-		socket.emit("refreshChat", "msg", "Yo : " + message + ".");
-		//con socket.broadcast.emit, es para el resto de usuarios
-		socket.broadcast.emit("refreshChat", "msg", socket.username + " dice: " + message + ".");
-	});
+  // when the client emits 'stop typing', we broadcast it to others
+  socket.on('stop typing', function () {
+    socket.broadcast.emit('stop typing', {
+      username: socket.username
+    });
+  });
 
-	//cuando el usuario cierra o actualiza el navegador
-	socket.on("disconnect", function()
-	{
-		//si el usuario, por ejemplo, sin estar logueado refresca la
-		//página, el typeof del socket username es undefined, y el mensaje sería 
-		//El usuario undefined se ha desconectado del chat, con ésto lo evitamos
-		if(typeof(socket.username) == "undefined")
-		{
-			return;
-		}
-		//en otro caso, eliminamos al usuario
-		delete usuariosOnline[socket.username];
-		//actualizamos la lista de usuarios en el chat, zona cliente
-		io.sockets.emit("updateSidebarUsers", usuariosOnline);
-		//emitimos el mensaje global a todos los que están conectados con broadcasts
-		socket.broadcast.emit("refreshChat", "desconectado", "El usuario " + socket.username + " se ha desconectado del chat.");
-	});
+  // when the user disconnects.. perform this
+  socket.on('disconnect', function () {
+    if (addedUser) {
+      --numUsers;
+
+      // echo globally that this client has left
+      socket.broadcast.emit('user left', {
+        username: socket.username,
+        numUsers: numUsers
+      });
+    }
+  });
 });
