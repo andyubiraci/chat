@@ -12,10 +12,10 @@ app.get('/', function(req, res){
 
 io.on('connection', function(socket) {
     console.log('Alguien en Sockets');
-    socket.emit('message',{
+    socket.emit('messages',{
         id:1,
         text: "Mi mensaje",
-        author: "Ubiraci"
+        author: "Andy Ubiraci"
     })
 })
 
