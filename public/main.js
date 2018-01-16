@@ -1,4 +1,4 @@
-var socket = io.connect('http://localhost', { 'forceNew': true});
+var socket = io.connect('https://mktgchat.azurewebsites.net', { 'forceNew': true});
 
 
 socket.on('messages', function(data){
