@@ -12,7 +12,7 @@ var messages = [{
 
 app.use(express.static('public'));
 
-app.get('/', function(req, res){
+app.get('/public/index.html', function(req, res){
     res.status(200).send("MKTG Chat...!");
 });
 
