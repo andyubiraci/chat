@@ -4,21 +4,32 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var port = process.env.PORT || 3000;
 
-app.use(express.static('public'))
+var messages = [{
+    id:1,
+    text: "Mi mensaje",
+    author: "Andy Ubiraci" 
+}];
+
+app.use(express.static('public'));
 
 app.get('/', function(req, res){
     res.status(200).send("MKTG Chat...!");
-})
+});
 
 io.on('connection', function(socket) {
     console.log('Alguien en Sockets');
-    socket.emit('messages',{
-        id:1,
-        text: "Mi mensaje",
-        author: "Andy Ubiraci"
-    })
-})
+    socket.emit('messages',messages);
+    
+    
+    socket.on('new-message', function(data){
+        
+        messages.push(data);
+        io.sockets.emit('messages', messages);
+        
+    });
+    
+});
 
 server.listen(80, function(){
     console.log("corriendo..!");
-})
+});
