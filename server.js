@@ -2,10 +2,15 @@ let app = require('express')();
 let http = require('http').Server(app);
 let io = require('socket.io')(http);
  
+var myroom = "";
+
 io.on('connection', (socket) => {
   
 
  socket.on('join:room', (room) =>{
+     
+     myroom = room;
+     
     socket.join(room);
 });
 
@@ -22,7 +27,7 @@ io.on('connection', (socket) => {
   });
   
   socket.on('add-message', (message) => {
-    io.emit('message', {text: message.text, from: socket.nickname, created: new Date()});    
+    socket.in(myroom).emit('message', {text: message.text, from: socket.nickname, created: new Date()});    
   });
 });
  
