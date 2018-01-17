@@ -9,7 +9,7 @@ io.on('connection', (socket) => {
 socket.on('join:room', function(data) {
 alert(data.room_name);
 var room_name = data.room_name;
-io.join(room_name);
+socket.join(room_name);
 console.log('someone joined room ' + room_name + ' ' + socket.id);          
 });
   
@@ -23,7 +23,7 @@ console.log('someone joined room ' + room_name + ' ' + socket.id);
   });
   
   socket.on('add-message', (message) => {
-      io.in(message.room).emit('message', {text: 'r: ' + message.room +' t:' + message.text, from: socket.nickname, created: new Date()}); 
+      socket.in(message.room).emit('message', {text: 'r: ' + message.room +' t:' + message.text, from: socket.nickname, created: new Date()}); 
       
  console.log('room: ' + message.room + ' m: ' + message.text);
       
