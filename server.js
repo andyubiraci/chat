@@ -7,6 +7,8 @@ io.on('connection', (socket) => {
     
     
       socket.on('join:room', function(data) {
+      
+          alert(data.room_name);
           
           var room_name = data.room_name;
         socket.join(room_name);
