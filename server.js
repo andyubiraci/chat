@@ -23,12 +23,16 @@ console.log('someone joined room ' + room_name + ' ' + socket.id);
   });
   
   socket.on('add-message', (message) => {
-      socket.in(message.room).emit('message', {text: 'r: ' + message.room +' t:' + message.text, from: socket.nickname, created: new Date()}); 
+      io.in(message.room).emit('message', {text: 'r: ' + message.room +' t:' + message.text, from: socket.nickname, created: new Date()}); 
       
  console.log('room: ' + message.room + ' m: ' + message.text);
       
   });
     
+    
+socket.on('send:message', function(msg){
+    socket.in(msg.room).emit('message', msg);
+});
     
     
     
