@@ -3,15 +3,6 @@ let http = require('http').Server(app);
 let io = require('socket.io')(http);
  
 io.on('connection', (socket) => {
-    
-    
-
-socket.on('join:room', function(data) {
-alert(data.room_name);
-var room_name = data.room_name;
-socket.join(room_name);
-console.log('someone joined room ' + room_name + ' ' + socket.id);          
-});
   
   socket.on('disconnect', function(){
     io.emit('users-changed', {user: socket.nickname, event: 'left'});   
@@ -23,21 +14,8 @@ console.log('someone joined room ' + room_name + ' ' + socket.id);
   });
   
   socket.on('add-message', (message) => {
-      io.in(message.room).emit('message', {text: 'r: ' + message.room +' t:' + message.text, from: socket.nickname, created: new Date()}); 
-      
- console.log('room: ' + message.room + ' m: ' + message.text);
-      
+    io.emit('message', {text: message.text, from: socket.nickname, created: new Date()});    
   });
-    
-    
-socket.on('send:message', function(msg){
-    io.in(msg.room).emit('message', {message.text});
-});
-    
-    
-    
-    
-    
 });
  
 var port = process.env.PORT || 3000;
