@@ -31,7 +31,7 @@ console.log('someone joined room ' + room_name + ' ' + socket.id);
     
     
 socket.on('send:message', function(msg){
-    socket.in(msg.room).emit('message', msg);
+    io.in(msg.room).emit('message', {message.text});
 });
     
     
