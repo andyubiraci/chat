@@ -4,6 +4,35 @@ let io = require('socket.io')(http);
  
 io.on('connection', (socket) => {
   
+
+socket.on('join:room', function(data){
+        var room_name = data.room_name;
+        socket.join(room_name);
+    });
+
+      socket.on('send:message', function(msg){
+          
+     socket.nickname = msg.nickname;      
+          
+        socket.in(msg.room).emit('message', {text: msg.text, from: socket.nickname, created: new Date()});
+    });
+    
+    
+ 
+
+});
+
+
+ 
+var port = process.env.PORT || 3000;
+ 
+http.listen(port, function(){
+   console.log('listening in http://localhost:' + port);
+});
+
+/*
+io.on('connection', (socket) => {
+  
   socket.on('disconnect', function(){
     io.emit('users-changed', {user: socket.nickname, event: 'left'});   
   });
@@ -23,3 +52,4 @@ var port = process.env.PORT || 3000;
 http.listen(port, function(){
    console.log('listening in http://localhost:' + port);
 });
+*/
