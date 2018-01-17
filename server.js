@@ -2,11 +2,11 @@ let app = require('express')();
 let http = require('http').Server(app);
 let io = require('socket.io')(http);
  
-var myroom = "";
-
 io.on('connection', (socket) => {
-  
 
+var defaultRoom = 'general';    
+var myroom = "";
+    
  socket.on('join:room', (room) =>{
      
      myroom = room;
